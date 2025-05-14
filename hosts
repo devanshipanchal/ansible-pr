@@ -1,0 +1,12 @@
+[webservers]
+10.26.10.7 ansible_python_interpreter=/usr/bin/python3
+
+[source_machines]
+10.26.10.6 ansible_ssh_user=devanshi ansible_sudo_pass=1234
+
+[target_machines]
+10.26.10.7 ansible_ssh_user=darshan ansible_ssh_pass=darshan@260201
+
+[all:vars]
+ansible_user=devanshi
+ansible_ssh_private_key_file=~/.ssh/id_rsa

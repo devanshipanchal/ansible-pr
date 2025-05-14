@@ -1,0 +1,10 @@
+---
+- name: Copy a file to a remote server
+  hosts: webservers
+  become: true  # Use sudo privileges to copy the file
+  tasks:
+    - name: Copy file from local machine to remote server
+      copy:
+        src: /home/devanshi/example.txt  # Local file path (replace with your actual file path)
+        dest: /tmp/example.txt  # Destination path on the remote server
+        mode: '0644'  # Optional: Set permissions
