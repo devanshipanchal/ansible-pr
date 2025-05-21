@@ -1,0 +1,79 @@
+ansible-playbook [core 2.17.11]
+  config file = None
+  configured module search path = ['/home/devanshi/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /home/devanshi/.local/lib/python3.10/site-packages/ansible
+  ansible collection location = /home/devanshi/.ansible/collections:/usr/share/ansible/collections
+  executable location = /home/devanshi/.local/bin/ansible-playbook
+  python version = 3.10.12 (main, Feb  4 2025, 14:57:36) [GCC 11.4.0] (/usr/bin/python3)
+  jinja version = 3.0.3
+  libyaml = True
+No config file found; using defaults
+redirecting (type: modules) ansible.builtin.npm to community.general.npm
+Skipping callback 'default', as we already have a stdout callback.
+Skipping callback 'minimal', as we already have a stdout callback.
+Skipping callback 'oneline', as we already have a stdout callback.
+
+PLAYBOOK: newfile.yml **********************************************************
+1 plays in newfile.yml
+
+PLAY [Install Nginx, Angular, Node.js] *****************************************
+
+TASK [Gathering Facts] *********************************************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:2
+ok: [ubuntu]
+
+TASK [Update APT package cache] ************************************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:7
+ok: [ubuntu] => {"cache_update_time": 1747816880, "cache_updated": false, "changed": false}
+
+TASK [Install Nginx] ***********************************************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:12
+ok: [ubuntu] => {"cache_update_time": 1747816880, "cache_updated": false, "changed": false}
+
+TASK [Install dependencies for angularcli and Node.js] *************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:18
+ok: [ubuntu] => {"cache_update_time": 1747816880, "cache_updated": false, "changed": false}
+
+TASK [Check if Node.js repo is already present] ********************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:32
+ok: [ubuntu] => {"changed": false, "stat": {"atime": 1747800690.0335333, "attr_flags": "e", "attributes": ["extents"], "block_size": 4096, "blocks": 8, "charset": "us-ascii", "checksum": "7a5b88d11116e3630d27aad5e7724b2452c15880", "ctime": 1747376814.9216638, "dev": 2053, "device_type": 0, "executable": false, "exists": true, "gid": 0, "gr_name": "root", "inode": 5770186, "isblk": false, "ischr": false, "isdir": false, "isfifo": false, "isgid": false, "islnk": false, "isreg": true, "issock": false, "isuid": false, "mimetype": "text/plain", "mode": "0644", "mtime": 1747376814.9216638, "nlink": 1, "path": "/etc/apt/sources.list.d/nodesource.list", "pw_name": "root", "readable": true, "rgrp": true, "roth": true, "rusr": true, "size": 113, "uid": 0, "version": "2403151538", "wgrp": false, "woth": false, "writeable": true, "wusr": true, "xgrp": false, "xoth": false, "xusr": false}}
+
+TASK [Add Node.js 18.x repo] ***************************************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:40
+skipping: [ubuntu] => {"changed": false, "false_condition": "not nodejs_repo.stat.exists", "skip_reason": "Conditional result was False"}
+
+TASK [Install Node.js] *********************************************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:47
+ok: [ubuntu] => {"cache_update_time": 1747816880, "cache_updated": false, "changed": false}
+
+TASK [Debug  node.js installation status] **************************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:53
+ok: [ubuntu] => {
+    "msg": "Node.js was installed or already present:{'changed': False, 'cache_updated': False, 'cache_update_time': 1747816880, 'failed': False}"
+}
+
+TASK [Check if Angular CLI is already installed] *******************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:60
+changed: [ubuntu] => {"changed": true, "cmd": "npm list -g @angular/cli --depth=0", "delta": "0:00:00.491349", "end": "2025-05-21 14:47:14.430025", "msg": "", "rc": 0, "start": "2025-05-21 14:47:13.938676", "stderr": "", "stderr_lines": [], "stdout": "/usr/lib\n└── @angular/cli@19.2.12", "stdout_lines": ["/usr/lib", "└── @angular/cli@19.2.12"]}
+
+TASK [Install Angular CLI globally] ********************************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:66
+redirecting (type: modules) ansible.builtin.npm to community.general.npm
+redirecting (type: modules) ansible.builtin.npm to community.general.npm
+ok: [ubuntu] => {"changed": false}
+
+TASK [Debug  angular installation status] **************************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:75
+ok: [ubuntu] => {
+    "msg": "Angular was installed or already present:{'changed': False, 'failed': False}"
+}
+
+TASK [Logging status] **********************************************************
+task path: /home/devanshi/AnsibleProject/newfile.yml:79
+ok: [ubuntu] => {
+    "msg": "Logging is enabled. Output is saved to ansible.log"
+}
+
+PLAY RECAP *********************************************************************
+ubuntu                     : ok=11   changed=1    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+
