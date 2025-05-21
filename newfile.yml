@@ -1,0 +1,87 @@
+---
+- name: Install Nginx, Angular, Node.js
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Update APT package cache   #update cache for 1 hour
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Nginx              #installation of nginx
+      apt:
+        name: nginx
+        state: present
+
+
+    - name: Install dependencies for angularcli and Node.js
+      apt:
+        name:
+          - apt-transport-https     #enable apt for fetching https packages
+          - gnupg                   #verify digital sign
+          - curl
+          - ca-certificates        #ssl certificate
+          - build-essential        #needed for npm packages
+        state: present
+
+
+   #check noderepoconfiguration is stored if it's already added,
+   #then it's not added
+
+    - name: Check if Node.js repo is already present
+      stat:
+        path: /etc/apt/sources.list.d/nodesource.list
+      register: nodejs_repo
+
+   # Add nodesource from apt repo and installrequired gpg key
+   #it's only run if the nodesource.list file does not avalilable
+
+    - name: Add Node.js 18.x repo
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+      args:
+        executable: /bin/bash
+      when : not nodejs_repo.stat.exists
+
+    - name: Install Node.js               #install node.js
+      apt:
+       name: nodejs
+       state: present
+      register: nodejs_install_result
+
+    - name: Debug  node.js installation status
+      debug:
+       msg: "Node.js was installed or already present:{{nodejs_install_result}}"
+
+
+    # Check if Angular CLI is installed globally; 
+   #store result in ng_cli_check and ignore failure if not found
+    - name: Check if Angular CLI is already installed
+      shell: npm list -g @angular/cli --depth=0
+      register: ng_cli_check
+      ignore_errors: yes
+
+
+    - name: Install Angular CLI globally
+      npm:
+        name: "@angular/cli"
+        global: yes
+      environment:
+        PATH: "/usr/bin:/usr/local/bin"
+      register: angular_install_result
+
+
+    - name: Debug  angular installation status
+      debug:
+       msg: "Angular was installed or already present:{{angular_install_result}}"
+
+    - name: Logging status
+      debug:
+        msg: "Logging is enabled. Output is saved to ansible.log"
+        
+        
+        
+        
+        
+
