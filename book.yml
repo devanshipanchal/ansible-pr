@@ -1,0 +1,84 @@
+---
+- name: Install dependencies, copies files, ,configure ufw and run server on portno.5000
+  hosts: localhost
+  become: true
+  tasks:
+
+
+
+#copy files
+    - name: Copy multiple files from Project2 to Project1
+      ansible.builtin.copy:
+       src: "{{ item.src }}"
+       dest: "{{ item.dest }}"
+       mode: "{{ item.mode }}"
+      with_items:
+         - { src: '/home/devanshi/Project2/setting.cnf', dest: '/home/devanshi/Project1/setting.cnf', mode: '0644' }
+         - { src: '/home/devanshi/Project2/msg.txt', dest: '/home/devanshi/Project1/msg.txt', mode: '0644' }
+         - { src: '/home/devanshi/Project2/script.sh', dest: '/home/devanshi/Project1/script.sh', mode: '0755' }
+
+# check ufw status
+
+    - name: Check UFW and open port 5000 if needed
+      ansible.builtin.shell:  |
+        # Get the current UFW status              
+        ufw_status=$(sudo ufw status | grep -i "Status:" | cut -d: -f2 | xargs)
+
+        # Debugging the line and its output   
+              
+        echo "DEBUG: ufw_status variable content is: '${ufw_status}'"
+        echo "Current UFW status: $ufw_status"
+
+        if [ "$ufw_status" = "active" ]; then
+          echo "UFW is active. Checking if port 5000/tcp needs to be opened..."
+
+
+          if ! sudo ufw status | grep -q "5000/tcp"; then
+            echo "Port 5000/tcp rule not found. pls add."
+
+            sudo ufw allow 5000/tcp
+            echo "Port 5000/tcp allowed successfully."
+          else
+
+            echo "Port 5000/tcp rule already exists. No action needed."
+          fi
+        else 
+
+          echo "UFW is inactive. Port 5000 will NOT be opened."
+          echo "To enable UFW, consider adding steps like:"
+          
+          echo "  sudo ufw default deny incoming"
+          echo "  sudo ufw default allow outgoing"
+          echo "  sudo ufw allow ssh"
+          echo "  sudo ufw enable"
+
+
+          echo "UFW has been enabled with default rules."
+          echo "Now allowing port 5000/tcp..."
+          sudo ufw allow 5000/tcp
+          echo "Port 5000/tcp allowed successfully."
+
+        fi
+
+        echo "Final UFW status:"
+        sudo ufw status verbose
+        
+        
+      register: ufw_result  
+      changed_when: false
+      
+    - name: Show output
+      ansible.builtin.debug:
+       var: ufw_result.stdout_lines
+        
+
+#execute on localhost
+    - name: Run script & start server on localhost
+      ansible.builtin.shell: ./script.sh
+      args:
+         chdir: /home/devanshi/Project1
+         
+         
+    
+
+
