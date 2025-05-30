@@ -1,0 +1,71 @@
+---
+- name: Install dependencies, copies files, configure ufw and run server on portno.5000
+  hosts: localhost
+  become: true
+  tasks:
+
+# Copy files
+    - name: Copy multiple files from Project2 to Project1
+      ansible.builtin.copy:
+       src: "{{ item.src }}"
+       dest: "{{ item.dest }}"
+       mode: "{{ item.mode }}"
+      loop:
+         - { src: '/home/devanshi/Project2/setting.cnf', dest: '/home/devanshi/Project1/setting.cnf', mode: '0644' }
+         - { src: '/home/devanshi/Project2/msg.txt', dest: '/home/devanshi/Project1/msg.txt', mode: '0644' }
+         - { src: '/home/devanshi/Project2/script.sh', dest: '/home/devanshi/Project1/script.sh', mode: '0755' }
+
+# Check ufw status and open port if active
+    - name: Check ufw status and open port 5000 if active
+      ansible.builtin.shell: |
+        ufw_status=$(sudo ufw status | grep -i "Status:" | cut -d: -f2 | xargs)
+
+        echo "Current ufw status: $ufw_status"
+
+        if [ "$ufw_status" = "active" ]; then
+          echo "ufw is active. Check the port 5000..."
+
+          if ! sudo ufw status | grep -q "5000/tcp"; then   #to check port is exist or not (! for 0& non 0)
+
+            echo "ANSIBLE_FLAG_UFW_PORT_OPENED"
+            echo "Port 5000/tcp rule not found. Adding rule."
+            sudo ufw allow 5000/tcp
+            echo "Port 5000/tcp allowed successfully."
+            echo "ufw is active ,so port is open"
+
+          else
+            echo "ANSIBLE_FLAG_UFW_PORT_EXISTS"
+            echo "Port 5000/tcp rule already exists. No action needed."
+            echo"ufw is active and port is exist"  
+          fi
+
+        else
+          echo "UFW_INACTIVE_FLAG"
+          echo "ufw is inactive. Port 5000 will NOT be opened."
+          echo "To enable ufw and allow port 5000, then add ufw rules."
+
+        fi
+
+        echo "Final ufw status:"
+        sudo ufw status verbose
+
+      register: ufw_result  #ti run ufw status entire output into ufw_result
+      changed_when: false  #it's say ansible if run successfully should not marked as "changed"
+
+    - name: Show UFW status output
+      ansible.builtin.debug:
+       var: ufw_result.stdout    #display result
+
+# Execute on localhost
+
+    - name: Run script & start server on localhost
+      ansible.builtin.shell: ./script.sh
+      args: 
+        chdir: /home/devanshi/Project1
+      when: "'ANSIBLE_FLAG_UFW_PORT_OPENED' in ufw_result.stdout_lines or 'ANSIBLE_FLAG_UFW_PORT_EXISTS' in ufw_result.stdout_lines"
+      delegate_to: localhost  #run this tsak on that server ,where ansible is execute
+
+
+      #when - result.stdout is store print line (echo line) and use when module (need to check proper echo line) use capital letter because ansible is use this type of script
+      # Improving the clarity and debuggability
+      #Making your Ansible when conditions more robust by minimizing the chance of unintended string matches within complex output.

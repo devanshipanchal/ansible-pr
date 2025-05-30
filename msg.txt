@@ -1,0 +1,4 @@
+hello i am devanshi 
+welcome to  port:5000
+This is my awesome Python server.
+The port is dynamic and read from setting.cnf.

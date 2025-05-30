@@ -1,0 +1,80 @@
+---
+- name: Install dependencies, copies files, configure ufw and run server on portno.5000
+  hosts: localhost
+  become: true
+  tasks:
+
+# Copy files
+    - name: Copy multiple files from Project2 to Project1
+      ansible.builtin.copy:
+       src: "{{ item.src }}"
+       dest: "{{ item.dest }}"
+       mode: "{{ item.mode }}"
+      with_items:
+         - { src: '/home/devanshi/Project2/setting.cnf', dest: '/home/devanshi/Project1/setting.cnf', mode: '0644' }
+         - { src: '/home/devanshi/Project2/msg.txt', dest: '/home/devanshi/Project1/msg.txt', mode: '0644' }
+         - { src: '/home/devanshi/Project2/script.sh', dest: '/home/devanshi/Project1/script.sh', mode: '0755' }
+
+# Ensure UFW is active and configure port 5000
+    - name: Ensure UFW is active and allow port 5000
+      block:
+        - name: Get UFW status
+          ansible.builtin.command: ufw status
+          register: ufw_check_status
+          changed_when: false
+
+        - name: Debug UFW status output
+          ansible.builtin.debug:
+            var: ufw_check_status.stdout_lines
+          when: ansible_check_mode is not defined or not ansible_check_mode 
+             # Show debug in normal runs
+
+        - name: Enable UFW if inactive
+          ansible.builtin.shell: |
+            if echo "{{ ufw_check_status.stdout }}" | grep -q "Status: inactive"; then
+              echo "UFW is inactive. Enabling UFW..."
+              #sudo ufw default deny incoming
+              #sudo ufw default allow outgoing
+              #sudo ufw allow ssh  
+              #sudo ufw enable
+              echo "UFW has been enabled."
+              exit 0 # Indicate change occurred
+            else
+              echo "UFW is already active."
+              exit 1 # Indicate no change
+            fi
+          register: ufw_enable_result
+          changed_when: ufw_enable_result.rc == 0 
+          # Mark as changed if UFW was enabled
+          args:
+            warn: false # Suppress warning about shell(ignore warning msg,use shell that's why..)
+
+        - name: Allow port 5000/tcp
+          ansible.builtin.ufw:
+            rule: allow
+            port: '5000'
+            proto: tcp
+            state: enabled
+          notify: Reload UFW 
+          # Add a handler to reload UFW if changes are generate
+
+      rescue:
+        - name: Handle UFW command not found (if ufw is not installed)
+          ansible.builtin.debug:
+            msg: "UFW command not found. Please ensure UFW is installed on your system."
+          when: "'command not found' in ufw_check_status.stderr or 'No such file or directory' in ufw_check_status.stderr"
+
+          #(if any task willbe failed playbook is not suddenly stop it's like try catch)
+
+# Execute on localhost
+    - name: Run script & start server on localhost
+      ansible.builtin.shell: ./script.sh
+      args:
+         chdir: /home/devanshi/Project1
+
+  handlers:
+    - name: Reload UFW
+      ansible.builtin.service:
+        name: ufw
+        state: reloaded
+      listen: "Reload UFW"
